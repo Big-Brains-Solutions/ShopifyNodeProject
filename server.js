@@ -14,7 +14,7 @@ Shopify.Context.initialize({
   API_SECRET_KEY: process.env.SHOPIFY_API_SECRET,
   SCOPES: process.env.SCOPES.split(","),
   HOST_NAME: process.env.SHOPIFY_APP_URL.replace(/https:\/\//, ""),
-  API_VERSION: ApiVersion.April22,
+  API_VERSION: ApiVersion.October20,
   IS_EMBEDDED_APP: true,
   // This should be replaced with your preferred storage strategy
   SESSION_STORAGE: new Shopify.Session.MemorySessionStorage(),
@@ -34,6 +34,7 @@ const ACTIVE_SHOPIFY_SHOPS = {};
 
 
 app.prepare().then(()=> {
+  console.log("app.prepare")
   const server = new Koa();
   const router = new Router();
   server.keys = [Shopify.Context.API_SECRET_KEY];
@@ -41,31 +42,38 @@ app.prepare().then(()=> {
   server.use(
     createShopifyAuth({
       afterAuth(ctx) {
+        console.log("after auth")
         const { shop, scope } = ctx.state.shopify;
         ACTIVE_SHOPIFY_SHOPS[shop] = scope;
 
         if ( ACTIVE_SHOPIFY_SHOPS[shop] ) {
+          console.log("after auth - shop exists")
           ctx.redirect(`https://${shop}/admin/apps`);
         } else {
+          console.log("after auth - no shop")
           ctx.redirect(`/?shop=${shop}`);
         }
-                
+
       },
     }),
   );
 
   const handleRequest = async (ctx) => {
+    console.log("handleRequest")
     await handle(ctx.req, ctx.res);
     ctx.respond = false;
     ctx.res.statusCode = 200;
   };
 
   router.get("/", async (ctx) => {
+    console.log("router.get /")
     const shop = ctx.query.shop;
 
     if (ACTIVE_SHOPIFY_SHOPS[shop] === undefined) {
+      console.log("router.get /  --  shop undefined")
       ctx.redirect(`/auth?shop=${shop}`);
     } else {
+      console.log("router.get /  --  shop exists")
       await handleRequest(ctx);
     }
   });
