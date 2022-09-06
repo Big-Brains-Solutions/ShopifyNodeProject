@@ -1,6 +1,9 @@
 # Environment Configuration
 .env
 
+# BD 9/6/2022 - ignoring .next directory
+.next
+
 # Dependency directory
 node_modules
 

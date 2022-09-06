@@ -5,17 +5,17 @@ const next = require('next');
 const { default: createShopifyAuth } = require('@shopify/koa-shopify-auth');
 const { verifyRequest } = require('@shopify/koa-shopify-auth');
 const { default: Shopify, ApiVersion } = require('@shopify/shopify-api');
-const { Router } = require('koa-router');
+const Router = require('koa-router');
 
-import { Logger } from 'aws-amplify';
-const logger = new Logger('foo', 'INFO');
+// import { Logger } from 'aws-amplify';
+// const logger = new Logger('foo', 'INFO');
 
 dotenv.config();
 
 Shopify.Context.initialize({
   API_KEY: process.env.SHOPIFY_API_KEY,
   API_SECRET_KEY: process.env.SHOPIFY_API_SECRET,
-  SCOPES: process.env.SCOPES.split(","),
+  SCOPES: process.env.SHOPIFY_API_SCOPES.split(","),
   HOST_NAME: process.env.SHOPIFY_APP_URL.replace(/https:\/\//, ""),
   API_VERSION: ApiVersion.October20,
   IS_EMBEDDED_APP: true,
@@ -38,7 +38,7 @@ const ACTIVE_SHOPIFY_SHOPS = {};
 
 app.prepare().then(()=> {
   console.log("app.prepare")
-  logger.info("app.prepare")
+  // logger.info("app.prepare")
   const server = new Koa();
   const router = new Router();
   server.keys = [Shopify.Context.API_SECRET_KEY];
@@ -52,11 +52,11 @@ app.prepare().then(()=> {
 
         if ( ACTIVE_SHOPIFY_SHOPS[shop] ) {
           console.log("after auth - shop exists")
-          logger.info("after auth - shop exists")
+          // logger.info("after auth - shop exists")
           ctx.redirect(`https://${shop}/admin/apps`);
         } else {
           console.log("after auth - no shop")
-          logger.info("after auth - no shop")
+          // logger.info("after auth - no shop")
           ctx.redirect(`/?shop=${shop}`);
         }
 
@@ -66,7 +66,7 @@ app.prepare().then(()=> {
 
   const handleRequest = async (ctx) => {
     console.log("handleRequest")
-    logger.info("handleRequest")
+    // logger.info("handleRequest")
     await handle(ctx.req, ctx.res);
     ctx.respond = false;
     ctx.res.statusCode = 200;
@@ -74,16 +74,16 @@ app.prepare().then(()=> {
 
   router.get("/", async (ctx) => {
     console.log("router.get /")
-    logger.info("router.get /")
+    // logger.info("router.get /")
     const shop = ctx.query.shop;
 
     if (ACTIVE_SHOPIFY_SHOPS[shop] === undefined) {
       console.log("router.get /  --  shop undefined")
-      logger.info("router.get /  --  shop undefined")
+      // logger.info("router.get /  --  shop undefined")
       ctx.redirect(`/auth?shop=${shop}`);
     } else {
       console.log("router.get /  --  shop exists")
-      logger.info("router.get /  --  shop exists")
+      // logger.info("router.get /  --  shop exists")
       await handleRequest(ctx);
     }
   });
@@ -99,7 +99,7 @@ app.prepare().then(()=> {
 
   server.listen(port, () => {
     console.log(`> Ready on ${port}`)
-    logger.info(`> Ready on ${port}`)
+    // logger.info(`> Ready on ${port}`)
   });
 
 });
